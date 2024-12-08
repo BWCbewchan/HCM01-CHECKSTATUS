@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống kiểm tra trạng thái</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --gray: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f9fafb;
+            color: #111827;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+            min-height: calc(100vh - 40px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .search-group {
+            margin-bottom: 24px;
+        }
+
+        .search-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--gray);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .filter-group {
+            margin-bottom: 16px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--gray);
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-option {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .filter-option.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Stats Cards */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .virtual-table {
+            height: calc(100vh - 250px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f8f9fa;
+        }
+
+        .virtual-table::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .virtual-table::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+        .virtual-table::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-checked {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-checked::before {
+            background: var(--success);
+        }
+
+        .status-unchecked {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-unchecked::before {
+            background: var(--danger);
+        }
+
+        /* Type Badges */
+        .type-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-class {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .type-office {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: var(--gray);
+        }
+        .logo-container {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        }
+
+        .logo-container img {
+        max-height: 50px; /* Điều chỉnh kích thước logo phù hợp */
+        width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- ... existing code ... -->
+<div class="logo-container">
+    <img src="https://static.ladipage.net/5cefbc1ed062e8345a24dfe8/logo-mau-20240513110258-jalnx.png" alt="Logo">
+    <span style="color: white; margin-left: 10px; font-weight: bold;font-size: 30px; background-color: #e31f26; padding: 10px; border-radius: 10px;">HCM01</span>
+  </div>
+  <!-- ... existing code ... -->
+                <div class="search-group">
+                    <label for="searchInput">Tìm kiếm</label>
+                    <input type="text" id="searchInput" class="search-input" 
+                           placeholder="Tên GV, mã lớp, email...">
+                </div>
+
+                <div class="filter-group">
+                    <label>Trạng thái</label>
+                    <div class="filter-options" id="statusFilter">
+                        <button class="filter-option active" data-value="all">Tất cả</button>
+                        <button class="filter-option" data-value="CHECKED">Đã check</button>
+                        <button class="filter-option" data-value="UNCHECKED">Chưa check</button>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Loại</label>
+                    <div class="filter-options" id="typeFilter">
+                        <button class="filter-option active" data-value="all">Tất cả</button>
+                        <button class="filter-option" data-value="CLASS">Lớp học</button>
+                        <button class="filter-option" data-value="OFFICE_HOURS">Office hours</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCount">0</div>
+                        <div class="stat-label">Tổng số</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="checkedCount">0</div>
+                        <div class="stat-label">Đã check</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uncheckedCount">0</div>
+                        <div class="stat-label">Chưa check</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2 class="table-title">Danh sách trạng thái</h2>
+                    </div>
+                    <div class="virtual-table">
+                        <table id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Loại</th>
+                                    <th>Mã lớp</th>
+                                    <th>Tên giáo viên</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // Constants
+        const ITEMS_PER_PAGE = 50;
+        const SCROLL_THRESHOLD = 100;
+
+        // Cache DOM elements
+        const tbody = document.querySelector('#dataTable tbody');
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const virtualTable = document.querySelector('.virtual-table');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // State management
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 0;
+        let isLoading = false;
+        let activeFilters = {
+            status: 'all',
+            type: 'all'
+        };
+
+        // Utility functions
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function updateStats() {
+            const total = filteredData.length;
+            const checked = filteredData.filter(item => item.status === 'CHECKED').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('checkedCount').textContent = checked;
+            document.getElementById('uncheckedCount').textContent = total - checked;
+        }
+
+        // Row creation with optimized rendering
+        function createRow(item) {
+            const tr = document.createElement('tr');
+            const typeClass = item.type === 'CLASS' ? 'type-class' : 'type-office';
+            const statusClass = item.status === 'CHECKED' ? 'status-checked' : 'status-unchecked';
+            
+            tr.innerHTML = `
+                <td><span class="type-badge ${typeClass}">${item.type}</span></td>
+                <td>${item.classCode || '-'}</td>
+                <td>${item.teacherName || '-'}</td>
+                <td>${item.username || '-'}</td>
+                <td>${item.workEmail || item.personalEmail || '-'}</td>
+                <td><span class="status-badge ${statusClass}">${item.status || '-'}</span></td>
+            `;
+            return tr;
+        }
+
+        // Virtual scrolling implementation
+        function renderPage() {
+            if (isLoading) return;
+
+            const start = currentPage * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageData = filteredData.slice(start, end);
+
+            if (pageData.length === 0) return;
+
+            const fragment = document.createDocumentFragment();
+            pageData.forEach(item => fragment.appendChild(createRow(item)));
+
+            requestAnimationFrame(() => {
+                tbody.appendChild(fragment);
+                currentPage++;
+                isLoading = false;
+            });
+        }
+
+        // Filter implementation
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            filteredData = allData.filter(item => {
+                const matchesSearch = !searchTerm || 
+                    item.searchString.includes(searchTerm);
+                const matchesStatus = activeFilters.status === 'all' || 
+                    item.status === activeFilters.status;
+                const matchesType = activeFilters.type === 'all' || 
+                    item.type === activeFilters.type;
+
+                return matchesSearch && matchesStatus && matchesType;
+            });
+
+            // Reset and render
+            tbody.innerHTML = '';
+            currentPage = 0;
+            updateStats();
+            renderPage();
+        }
+
+        // Event Listeners
+        const debouncedSearch = debounce(() => {
+            applyFilters();
+        }, 300);
+
+        searchInput.addEventListener('input', debouncedSearch);
+
+        virtualTable.addEventListener('scroll', () => {
+            if (virtualTable.scrollHeight - virtualTable.scrollTop <= 
+                virtualTable.clientHeight + SCROLL_THRESHOLD) {
+                renderPage();
+            }
+        });
+
+        // Filter buttons
+        statusFilter.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-option')) {
+                statusFilter.querySelectorAll('.filter-option').forEach(btn => 
+                    btn.classList.remove('active'));
+                e.target.classList.add('active');
+                activeFilters.status = e.target.dataset.value;
+                applyFilters();
+            }
+        });
+
+        typeFilter.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-option')) {
+                typeFilter.querySelectorAll('.filter-option').forEach(btn => 
+                    btn.classList.remove('active'));
+                e.target.classList.add('active');
+                activeFilters.type = e.target.dataset.value;
+                applyFilters();
+            }
+        });
+
+        // Initial data load
+        fetch('CHECK CÔNG CLASS - Trang tính1.csv')
+            .then(response => response.text())
+            .then(csv => {
+                const lines = csv.split('\n');
+                allData = lines.slice(1).map(line => {
+                    const values = line.split(',');
+                    const item = {
+                        type: values[1],
+                        classCode: values[2],
+                        teacherName: values[5],
+                        username: values[8],
+                        workEmail: values[6],
+                        personalEmail: values[7],
+                        status: values[10]
+                    };
+                    // Pre-compute search string
+                    item.searchString = `${item.classCode} ${item.teacherName} ${item.username} 
+                        ${item.workEmail} ${item.personalEmail}`.toLowerCase();
+                    return item;
+                });
+                
+                filteredData = [...allData];
+                renderPage();
+                updateStats();
+                loadingOverlay.style.display = 'none';
+            })
+            .catch(err => {
+                console.error('Error loading data:', err);
+                loadingOverlay.style.display = 'none';
+                alert('Có lỗi khi tải dữ liệu. Vui lòng thử lại sau.');
+            });
+    </script>
+</body>
+</html> 
