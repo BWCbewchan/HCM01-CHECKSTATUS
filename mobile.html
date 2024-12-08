@@ -302,6 +302,56 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Bouncing Dots Animation */
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+        }
+
+        .loading-dots div {
+            width: 10px;
+            height: 10px;
+            margin: 0 5px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        .loading-dots div:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots div:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(-10px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -352,10 +402,20 @@
     </div>
 
     <div class="status-list" id="statusList">
-        <!-- Status cards will be inserted here -->
+        <!-- Loading animation will be shown here -->
     </div>
 
     <script>
+        // Debounce function to limit the rate at which a function can fire
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+
         // Chuyển hướng khi màn hình lớn
         function checkDeviceAndRedirect() {
             if (window.innerWidth > 768) {
@@ -462,7 +522,13 @@
             const statusList = document.getElementById('statusList');
             
             if (isLoading) {
-                statusList.innerHTML = '<div class="loading-spinner"></div>';
+                statusList.innerHTML = `
+                    <div class="loading-dots">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                `;
                 return;
             }
 
@@ -474,7 +540,7 @@
         }
 
         // Search and filter
-        document.querySelector('.search-input').addEventListener('input', (e) => {
+        document.querySelector('.search-input').addEventListener('input', debounce((e) => {
             const searchTerm = e.target.value.toLowerCase();
             filteredData = allData.filter(item => {
                 const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
@@ -484,7 +550,7 @@
                 return matchesSearch && matchesType && matchesStatus;
             });
             renderResults();
-        });
+        }, 500));
 
         // Filter handlers
         document.getElementById('typeFilter').addEventListener('click', (e) => {
