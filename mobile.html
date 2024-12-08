@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kiểm tra trạng thái</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --gray: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #f9fafb;
+            color: #111827;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-container img {
+            width: 100px;
+        }
+
+        /* Search */
+        .search-container {
+            background: white;
+            padding: 12px 15px;
+            position: fixed;
+            top: 62px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Filters */
+        .filter-section {
+            margin-top: 124px;
+            padding: 15px;
+        }
+
+        .filter-group {
+            margin-bottom: 16px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            background: white;
+            border: 1px solid #e5e7eb;
+            white-space: nowrap;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* Status Cards */
+        .status-list {
+            padding: 15px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .status-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-class {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .type-office {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .class-code {
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .checked {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .unchecked {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .teacher-info {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        .teacher-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        /* Loading States */
+        .skeleton {
+            background: #f8f9fa;
+            border: none;
+        }
+
+        .skeleton-badge {
+            width: 60px;
+            height: 24px;
+            background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin: 8px 0;
+            background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        /* Animations */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Empty & Error States */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .error-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .retry-button {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo-container">
+            <img src="https://static.ladipage.net/5cefbc1ed062e8345a24dfe8/logo-mau-20240513110258-jalnx.png" alt="Logo">
+            <span style="color: white; margin-left: 10px; font-weight: bold; background-color: #e31f26; padding: 10px; border-radius: 10px;">HCM01</span>
+        </div>
+    </header>
+
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="Tìm kiếm theo tên GV, mã lớp, email...">
+    </div>
+
+    <div class="filter-section">
+        <div class="filter-group">
+            <div class="filter-label">Loại</div>
+            <div class="filter-chips" id="typeFilter">
+                <button class="filter-chip active" data-type="all">Tất cả</button>
+                <button class="filter-chip" data-type="CLASS">Lớp học</button>
+                <button class="filter-chip" data-type="OFFICE_HOURS">Office hours</button>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <div class="filter-label">Trạng thái</div>
+            <div class="filter-chips" id="statusFilter">
+                <button class="filter-chip active" data-status="all">Tất cả</button>
+                <button class="filter-chip" data-status="CHECKED">Đã check</button>
+                <button class="filter-chip" data-status="UNCHECKED">Chưa check</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-value" id="totalCount">0</div>
+            <div class="stat-label">Tổng số</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="checkedCount">0</div>
+            <div class="stat-label">Đã check</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="uncheckedCount">0</div>
+            <div class="stat-label">Chưa check</div>
+        </div>
+    </div>
+
+    <div class="status-list" id="statusList">
+        <!-- Status cards will be inserted here -->
+    </div>
+
+    <script>
+        // Chuyển hướng khi màn hình lớn
+        function checkDeviceAndRedirect() {
+            if (window.innerWidth > 768) {
+                window.location.href = 'index.html';
+            }
+        }
+        window.addEventListener('load', checkDeviceAndRedirect);
+        window.addEventListener('resize', checkDeviceAndRedirect);
+
+        // Dữ liệu mẫu
+        const sampleData = [
+            {
+                type: 'CLASS',
+                classCode: 'MINDX-CIJS-01',
+                teacherName: 'Nguyễn Văn A',
+                username: 'teacher.a',
+                workEmail: 'teacher.a@mindx.edu.vn',
+                status: 'CHECKED'
+            },
+            {
+                type: 'OFFICE_HOURS',
+                classCode: 'MINDX-CIJS-02',
+                teacherName: 'Trần Thị B',
+                username: 'teacher.b',
+                workEmail: 'teacher.b@mindx.edu.vn',
+                status: 'UNCHECKED'
+            }
+        ];
+
+        let allData = [];
+        let filteredData = [];
+        let activeFilters = { type: 'all', status: 'all' };
+        let isLoading = true;
+
+        // Load data from CSV
+        async function loadData() {
+            try {
+                const response = await fetch('CHECK CÔNG CLASS - Trang tính1.csv');
+                const csv = await response.text();
+                const lines = csv.split('\n');
+                
+                // Skip header row and process data
+                allData = lines.slice(1)
+                    .filter(line => line.trim()) // Remove empty lines
+                    .map(line => {
+                        const values = line.split(',');
+                        return {
+                            type: values[1]?.trim(),
+                            classCode: values[2]?.trim(),
+                            teacherName: values[5]?.trim(),
+                            username: values[8]?.trim(),
+                            workEmail: values[6]?.trim(),
+                            status: values[10]?.trim() || 'UNCHECKED'
+                        };
+                    });
+
+                filteredData = [...allData];
+                isLoading = false;
+                renderResults();
+            } catch (err) {
+                console.error('Error loading CSV:', err);
+                // Fallback to sample data if CSV fails to load
+                allData = [...sampleData];
+                filteredData = [...sampleData];
+                isLoading = false;
+                renderResults();
+            }
+        }
+
+        // Render functions
+        function createStatusCard(item) {
+            return `
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-header-left">
+                            <span class="type-badge ${item.type === 'CLASS' ? 'type-class' : 'type-office'}">
+                                ${item.type || 'N/A'}
+                            </span>
+                            <span class="class-code">${item.classCode || 'N/A'}</span>
+                        </div>
+                        <span class="status-badge ${(item.status || 'UNCHECKED').toLowerCase()}">
+                            ${item.status || 'UNCHECKED'}
+                        </span>
+                    </div>
+                    <div class="teacher-info">
+                        <div class="teacher-name">${item.teacherName || 'N/A'}</div>
+                        <div>${item.workEmail || 'N/A'}</div>
+                        <div>${item.username || 'N/A'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            const total = filteredData.length;
+            const checked = filteredData.filter(item => item.status === 'CHECKED').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('checkedCount').textContent = checked;
+            document.getElementById('uncheckedCount').textContent = total - checked;
+        }
+
+        function renderResults() {
+            const statusList = document.getElementById('statusList');
+            
+            if (isLoading) {
+                statusList.innerHTML = '<div class="loading-spinner"></div>';
+                return;
+            }
+
+            statusList.innerHTML = filteredData.length ? 
+                filteredData.map(createStatusCard).join('') :
+                '<div class="empty-state">Không tìm thấy kết quả</div>';
+            
+            updateStats();
+        }
+
+        // Search and filter
+        document.querySelector('.search-input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            filteredData = allData.filter(item => {
+                const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
+                const matchesSearch = searchString.includes(searchTerm);
+                const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
+                const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
+                return matchesSearch && matchesType && matchesStatus;
+            });
+            renderResults();
+        });
+
+        // Filter handlers
+        document.getElementById('typeFilter').addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-chip')) {
+                document.querySelectorAll('#typeFilter .filter-chip')
+                    .forEach(chip => chip.classList.remove('active'));
+                e.target.classList.add('active');
+                activeFilters.type = e.target.dataset.type;
+                const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+                filteredData = allData.filter(item => {
+                    const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
+                    const matchesSearch = searchString.includes(searchTerm);
+                    const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
+                    const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
+                    return matchesSearch && matchesType && matchesStatus;
+                });
+                renderResults();
+            }
+        });
+
+        document.getElementById('statusFilter').addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-chip')) {
+                document.querySelectorAll('#statusFilter .filter-chip')
+                    .forEach(chip => chip.classList.remove('active'));
+                e.target.classList.add('active');
+                activeFilters.status = e.target.dataset.status;
+                const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+                filteredData = allData.filter(item => {
+                    const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
+                    const matchesSearch = searchString.includes(searchTerm);
+                    const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
+                    const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
+                    return matchesSearch && matchesType && matchesStatus;
+                });
+                renderResults();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderResults(); // Show loading state
+            loadData(); // Load CSV data
+        });
+    </script>
+</body>
+</html> 

@@ -2,7 +2,25 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ thống kiểm tra trạng thái</title>
+    
+    <script>
+        // Thêm vào đầu file index.html
+        function checkDeviceAndRedirect() {
+            // Nếu màn hình nhỏ hơn hoặc bằng 768px, chuyển sang mobile
+            if (window.innerWidth <= 768) {
+                window.location.href = 'mobile.html';
+            }
+        }
+
+        // Kiểm tra khi load trang
+        window.addEventListener('load', checkDeviceAndRedirect);
+        
+        // Kiểm tra khi resize màn hình
+        window.addEventListener('resize', checkDeviceAndRedirect);
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -300,87 +318,132 @@
         max-height: 50px; /* Điều chỉnh kích thước logo phù hợp */
         width: auto;
         }
+
+        /* Mobile styles - Only apply when screen width is less than 768px */
+        @media screen and (max-width: 768px) {
+            .desktop-view {
+                display: none !important;
+            }
+            
+            .mobile-view {
+                display: block;
+            }
+
+            /* Mobile-specific styles from previous version */
+            .header {
+                background: white;
+                padding: 12px 16px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 100;
+            }
+
+            /* ... other mobile styles ... */
+        }
+
+        /* Desktop - Hide mobile view by default */
+        .mobile-view {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="dashboard">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- ... existing code ... -->
-<div class="logo-container">
-    <img src="https://static.ladipage.net/5cefbc1ed062e8345a24dfe8/logo-mau-20240513110258-jalnx.png" alt="Logo">
-    <span style="color: white; margin-left: 10px; font-weight: bold;font-size: 30px; background-color: #e31f26; padding: 10px; border-radius: 10px;">HCM01</span>
-  </div>
-  <!-- ... existing code ... -->
-                <div class="search-group">
-                    <label for="searchInput">Tìm kiếm</label>
-                    <input type="text" id="searchInput" class="search-input" 
-                           placeholder="Tên GV, mã lớp, email...">
-                </div>
+    <!-- Desktop View -->
+    <div class="desktop-view">
+        <div class="container">
+            <div class="dashboard">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <!-- ... existing code ... -->
+                    <div class="logo-container">
+                        <img src="https://static.ladipage.net/5cefbc1ed062e8345a24dfe8/logo-mau-20240513110258-jalnx.png" alt="Logo">
+                        <span style="color: white; margin-left: 10px; font-weight: bold;font-size: 30px; background-color: #e31f26; padding: 10px; border-radius: 10px;">HCM01</span>
+                    </div>
+                    <!-- ... existing code ... -->
+                    <div class="search-group">
+                        <label for="searchInput">Tìm kiếm</label>
+                        <input type="text" id="searchInput" class="search-input" 
+                               placeholder="Tên GV, mã lớp, email...">
+                    </div>
 
-                <div class="filter-group">
-                    <label>Trạng thái</label>
-                    <div class="filter-options" id="statusFilter">
-                        <button class="filter-option active" data-value="all">Tất cả</button>
-                        <button class="filter-option" data-value="CHECKED">Đã check</button>
-                        <button class="filter-option" data-value="UNCHECKED">Chưa check</button>
+                    <div class="filter-group">
+                        <label>Trạng thái</label>
+                        <div class="filter-options" id="statusFilter">
+                            <button class="filter-option active" data-value="all">Tất cả</button>
+                            <button class="filter-option" data-value="CHECKED">Đã check</button>
+                            <button class="filter-option" data-value="UNCHECKED">Chưa check</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="filter-group">
-                    <label>Loại</label>
-                    <div class="filter-options" id="typeFilter">
-                        <button class="filter-option active" data-value="all">Tất cả</button>
-                        <button class="filter-option" data-value="CLASS">Lớp học</button>
-                        <button class="filter-option" data-value="OFFICE_HOURS">Office hours</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main-content">
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalCount">0</div>
-                        <div class="stat-label">Tổng số</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="checkedCount">0</div>
-                        <div class="stat-label">Đã check</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="uncheckedCount">0</div>
-                        <div class="stat-label">Chưa check</div>
+                    <div class="filter-group">
+                        <label>Loại</label>
+                        <div class="filter-options" id="typeFilter">
+                            <button class="filter-option active" data-value="all">Tất cả</button>
+                            <button class="filter-option" data-value="CLASS">Lớp học</button>
+                            <button class="filter-option" data-value="OFFICE_HOURS">Office hours</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2 class="table-title">Danh sách trạng thái</h2>
+                <!-- Main Content -->
+                <div class="main-content">
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalCount">0</div>
+                            <div class="stat-label">Tổng số</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="checkedCount">0</div>
+                            <div class="stat-label">Đã check</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="uncheckedCount">0</div>
+                            <div class="stat-label">Chưa check</div>
+                        </div>
                     </div>
-                    <div class="virtual-table">
-                        <table id="dataTable">
-                            <thead>
-                                <tr>
-                                    <th>Loại</th>
-                                    <th>Mã lớp</th>
-                                    <th>Tên giáo viên</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2 class="table-title">Danh sách trạng thái</h2>
+                        </div>
+                        <div class="virtual-table">
+                            <table id="dataTable">
+                                <thead>
+                                    <tr>
+                                        <th>Loại</th>
+                                        <th>Mã lớp</th>
+                                        <th>Tên giáo viên</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+        </div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-spinner"></div>
+    <!-- Mobile View -->
+    <div class="mobile-view">
+        <header class="header">
+            <div class="logo-container">
+                <img src="https://static.ladipage.net/5cefbc1ed062e8345a24dfe8/logo-mau-20240513110258-jalnx.png" alt="Logo">
+                <span class="brand-text">HCM01</span>
+            </div>
+        </header>
+
+        <!-- ... rest of mobile HTML structure ... -->
     </div>
 
     <script>
@@ -554,6 +617,37 @@
                 loadingOverlay.style.display = 'none';
                 alert('Có lỗi khi tải dữ liệu. Vui lòng thử lại sau.');
             });
+
+        // Detect screen size and switch views
+        function handleViewSwitch() {
+            const isMobile = window.innerWidth <= 768;
+            const desktopView = document.querySelector('.desktop-view');
+            const mobileView = document.querySelector('.mobile-view');
+            
+            if (isMobile) {
+                desktopView.style.display = 'none';
+                mobileView.style.display = 'block';
+                initializeMobileView();
+            } else {
+                desktopView.style.display = 'block';
+                mobileView.style.display = 'none';
+                initializeDesktopView();
+            }
+        }
+
+        // Initialize appropriate view based on screen size
+        window.addEventListener('load', handleViewSwitch);
+        window.addEventListener('resize', handleViewSwitch);
+
+        // Mobile-specific initialization
+        function initializeMobileView() {
+            // Mobile view initialization code
+        }
+
+        // Desktop-specific initialization
+        function initializeDesktopView() {
+            // Desktop view initialization code
+        }
     </script>
 </body>
 </html> 
