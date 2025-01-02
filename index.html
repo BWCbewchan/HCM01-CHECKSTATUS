@@ -415,6 +415,7 @@
                                     <tr>
                                         <th>Loại</th>
                                         <th>Mã lớp</th>
+                                        <th>Ngày</th>
                                         <th>Tên giáo viên</th>
                                         <th>Username</th>
                                         <th>Email</th>
@@ -500,6 +501,7 @@
             tr.innerHTML = `
                 <td><span class="type-badge ${typeClass}">${item.type}</span></td>
                 <td>${item.classCode || '-'}</td>
+                <td>${item.date || '-'}</td>
                 <td>${item.teacherName || '-'}</td>
                 <td>${item.username || '-'}</td>
                 <td>${item.workEmail || item.personalEmail || '-'}</td>
@@ -599,11 +601,12 @@
                         username: values[8],
                         workEmail: values[6],
                         personalEmail: values[7],
-                        status: values[10]
+                        status: values[10],
+                        date: values[11]?.trim() || 'N/A'
                     };
                     // Pre-compute search string
                     item.searchString = `${item.classCode} ${item.teacherName} ${item.username} 
-                        ${item.workEmail} ${item.personalEmail}`.toLowerCase();
+                        ${item.workEmail} ${item.personalEmail} ${item.date}`.toLowerCase();
                     return item;
                 });
                 

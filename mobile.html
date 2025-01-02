@@ -450,26 +450,32 @@
         let activeFilters = { type: 'all', status: 'all' };
         let isLoading = true;
 
-        // Load data from CSV
+        // Thêm biến index để lưu trữ dữ liệu tìm kiếm
+        let searchIndex = [];
+
+        // Cập nhật hàm loadData để tạo index
         async function loadData() {
             try {
                 const response = await fetch('CHECK CÔNG CLASS - Trang tính1.csv');
                 const csv = await response.text();
                 const lines = csv.split('\n');
                 
-                // Skip header row and process data
                 allData = lines.slice(1)
-                    .filter(line => line.trim()) // Remove empty lines
+                    .filter(line => line.trim())
                     .map(line => {
                         const values = line.split(',');
-                        return {
+                        const item = {
                             type: values[1]?.trim(),
                             classCode: values[2]?.trim(),
                             teacherName: values[5]?.trim(),
                             username: values[8]?.trim(),
                             workEmail: values[6]?.trim(),
-                            status: values[10]?.trim() || 'UNCHECKED'
+                            status: values[10]?.trim() || 'UNCHECKED',
+                            date: values[11]?.trim() || 'N/A'
                         };
+                        // Cập nhật searchString để bao gồm cả date
+                        item.searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username} ${item.date}`.toLowerCase();
+                        return item;
                     });
 
                 filteredData = [...allData];
@@ -477,12 +483,22 @@
                 renderResults();
             } catch (err) {
                 console.error('Error loading CSV:', err);
-                // Fallback to sample data if CSV fails to load
                 allData = [...sampleData];
                 filteredData = [...sampleData];
                 isLoading = false;
                 renderResults();
             }
+        }
+
+        // Tối ưu hóa hàm filter
+        function filterData(searchTerm = '') {
+            searchTerm = searchTerm.toLowerCase();
+            return allData.filter(item => {
+                const matchesSearch = searchTerm === '' || item.searchString.includes(searchTerm);
+                const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
+                const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
+                return matchesSearch && matchesType && matchesStatus;
+            });
         }
 
         // Render functions
@@ -501,6 +517,7 @@
                         </span>
                     </div>
                     <div class="teacher-info">
+                        <div class="date-info">📅 ${item.date || 'N/A'}</div>
                         <div class="teacher-name">${item.teacherName || 'N/A'}</div>
                         <div>${item.workEmail || 'N/A'}</div>
                         <div>${item.username || 'N/A'}</div>
@@ -539,34 +556,20 @@
             updateStats();
         }
 
-        // Search and filter
+        // Cập nhật event listener cho search
         document.querySelector('.search-input').addEventListener('input', debounce((e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            filteredData = allData.filter(item => {
-                const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
-                const matchesSearch = searchString.includes(searchTerm);
-                const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
-                const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
-                return matchesSearch && matchesType && matchesStatus;
-            });
+            filteredData = filterData(e.target.value);
             renderResults();
-        }, 500));
+        }, 300)); // Giảm thời gian debounce xuống 300ms
 
-        // Filter handlers
+        // Cập nhật các event listener cho filter
         document.getElementById('typeFilter').addEventListener('click', (e) => {
             if (e.target.classList.contains('filter-chip')) {
                 document.querySelectorAll('#typeFilter .filter-chip')
                     .forEach(chip => chip.classList.remove('active'));
                 e.target.classList.add('active');
                 activeFilters.type = e.target.dataset.type;
-                const searchTerm = document.querySelector('.search-input').value.toLowerCase();
-                filteredData = allData.filter(item => {
-                    const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
-                    const matchesSearch = searchString.includes(searchTerm);
-                    const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
-                    const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
-                    return matchesSearch && matchesType && matchesStatus;
-                });
+                filteredData = filterData(document.querySelector('.search-input').value);
                 renderResults();
             }
         });
@@ -577,14 +580,7 @@
                     .forEach(chip => chip.classList.remove('active'));
                 e.target.classList.add('active');
                 activeFilters.status = e.target.dataset.status;
-                const searchTerm = document.querySelector('.search-input').value.toLowerCase();
-                filteredData = allData.filter(item => {
-                    const searchString = `${item.classCode} ${item.teacherName} ${item.workEmail} ${item.username}`.toLowerCase();
-                    const matchesSearch = searchString.includes(searchTerm);
-                    const matchesType = activeFilters.type === 'all' || item.type === activeFilters.type;
-                    const matchesStatus = activeFilters.status === 'all' || item.status === activeFilters.status;
-                    return matchesSearch && matchesType && matchesStatus;
-                });
+                filteredData = filterData(document.querySelector('.search-input').value);
                 renderResults();
             }
         });
